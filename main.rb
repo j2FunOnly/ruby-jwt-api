@@ -36,9 +36,26 @@ class Public < Sinatra::Base
 
     if @logins[username.to_sym] == password
       content_type :json
-      {message: 'Successfully logged in!'}.to_json
+      # {message: 'Successfully logged in!'}.to_json
+      {token: token(username)}.to_json
     else
       halt 401
     end
+  end
+
+  def token(username)
+    JWT.encode payload(username), ENV['JWT_SECRET'], 'HS256'
+  end
+
+  def payload(username)
+    {
+      exp: Time.now.to_i + 60 * 60,
+      iat: Time.now.to_i,
+      iss: ENV['JWT_ISSUER'],
+      scopes: ['add_money', 'remove_money', 'view_money'],
+      user: {
+        username: username
+      }
+    }
   end
 end
