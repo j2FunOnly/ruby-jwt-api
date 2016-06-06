@@ -5,7 +5,12 @@ module RubyJWTAPI
     end
 
     def call(env)
-      options = {algorithm: 'HS256', iss: ENV['JWT_ISSUER']}
+      options = {
+        algorithm: 'HS256',
+        iss: ENV['JWT_ISSUER'],
+        verify_iss: true,
+        verify_iat: true
+      }
       bearer = env.fetch('HTTP_AUTHORIZATION', '').slice(7..-1)
       payload, _ = JWT.decode(bearer, ENV['JWT_SECRET'], true, options)
 
