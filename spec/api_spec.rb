@@ -22,14 +22,33 @@ RSpec.describe RubyJWTAPI::Api do
       expect(last_response.body).to eq 'A Token must be passed.'
     end
 
-    it 'when token expired' do
+    it 'when expired' do
       payload = get_payload :user1
       payload[:exp] = Time.now.to_i - 60 * 60
       token = 'Bearer ' << get_token(payload)
       get '/money', {}, {'HTTP_AUTHORIZATION' => token}
-      # binding.pry
       expect(last_response.status).to eq 403
       expect(last_response.body).to eq 'The token has expired.'
+    end
+
+    it 'when wrong iat' do
+      payload = get_payload :user1
+      payload[:iat] = Time.now.to_i + 60 * 60 * 100
+      token = 'Bearer ' << get_token(payload)
+
+      get '/money', {}, {'HTTP_AUTHORIZATION' => token}
+      expect(last_response.status).to eq 403
+      expect(last_response.body).to eq 'The token does not have a valid "issued at" time.'
+    end
+
+    it 'when wrong issuer' do
+      payload = get_payload :user1
+      payload[:iss] = 'wrong_issuer.com'
+      token = 'Bearer ' << get_token(payload)
+
+      get '/money', {}, {'HTTP_AUTHORIZATION' => token}
+      expect(last_response.status).to eq 403
+      expect(last_response.body).to eq 'The token does not have valid issuer.'
     end
   end
 end
