@@ -13,8 +13,8 @@ module RubyJWTAPI
       env[:user] = payload['user']
 
       @app.call env
-    rescue JWT::DecodeError
-      [401, {'Content-Type' => 'text/plain'}, ['A Token must be passed.']]
+    rescue JWT::DecodeError => e
+      [401, {'Content-Type' => 'text/plain'}, ['A Token must be passed.' << e.to_s]]
     rescue JWT::ExpiredSignature
       [403, {'Content-Type' => 'text/plain'}, ['The token has expired.']]
     rescue JWT::InvalidIssuerError

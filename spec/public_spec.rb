@@ -1,11 +1,3 @@
-ENV['JWT_SECRET'] = 'test'
-ENV['JWT_ISSUER'] = 'testapi.com'
-
-require 'rack/test'
-require 'ruby_jwt_api'
-
-include Rack::Test::Methods
-
 RSpec.describe RubyJWTAPI::Public do
   let(:app) { described_class }
 

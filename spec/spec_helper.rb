@@ -3,8 +3,18 @@
 # The generated `.rspec` file contains `--require spec_helper` which will cause
 # this file to always be loaded, without a need to explicitly require it in any
 # files.
-#
+
+ENV['RACK_ENV'] = 'test'
+ENV['JWT_SECRET'] = 'testsecret'
+ENV['JWT_ISSUER'] = 'testapi.com'
+
+require 'rack/test'
+require 'ruby_jwt_api'
+require 'pry'
+
 RSpec.configure do |config|
+  config.include Rack::Test::Methods
+
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true
   end
