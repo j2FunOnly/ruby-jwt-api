@@ -1,6 +1,6 @@
-require_relative 'main'
+require_relative 'lib/ruby_jwt_api'
 
 run Rack::URLMap.new({
-  '/' => Public,
-  '/api' => Api
+  '/' => RubyJWTAPI::Public,
+  '/api' => RubyJWTAPI::Api
 })
