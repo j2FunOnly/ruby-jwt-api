@@ -6,15 +6,13 @@ module RubyJWTAPI
 
     def call(env)
       options = {algorithm: 'HS256', iss: ENV['JWT_ISSUER']}
-      bearer = env.fetch('HTTP_AUTHORIZATION', '')#.slice(7..-1)
+      bearer = env.fetch('HTTP_AUTHORIZATION', '').slice(7..-1)
       payload, _ = JWT.decode(bearer, ENV['JWT_SECRET'], true, options)
 
       env[:scopes] = payload['scopes']
       env[:user] = payload['user']
 
       @app.call env
-    rescue JWT::DecodeError => e
-      [401, {'Content-Type' => 'text/plain'}, ['A Token must be passed.' << e.to_s]]
     rescue JWT::ExpiredSignature
       [403, {'Content-Type' => 'text/plain'}, ['The token has expired.']]
     rescue JWT::InvalidIssuerError
@@ -27,6 +25,8 @@ module RubyJWTAPI
         403, {'Content-Type' => 'text/plain'},
         ['The token does not have a valid "issued at" time.']
       ]
+    rescue JWT::DecodeError
+      [401, {'Content-Type' => 'text/plain'}, ['A Token must be passed.']]
     end
   end
 end
