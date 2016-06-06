@@ -2,11 +2,45 @@ require 'json'
 require 'jwt'
 require 'sinatra/base'
 
+class JwtAuth
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    options = {algorithm: 'HS256', iss: ENV['JWT_ISSUER']}
+    bearer = env.fetch('HTTP_AUTHORIZATION', '')#.slice(7..-1)
+    payload, _ = JWT.decode(bearer, ENV['JWT_SECRET'], true, options)
+
+    env[:scopes] = payload['scopes']
+    env[:user] = payload['user']
+
+    @app.call env
+  rescue JWT::DecodeError
+    [401, {'Content-Type' => 'text/plain'}, ['A Token must be passed.']]
+  rescue JWT::ExpiredSignature
+    [403, {'Content-Type' => 'text/plain'}, ['The token has expired.']]
+  rescue JWT::InvalidIssuerError
+    [
+      403, {'Content-Type' => 'text/plain'},
+      ['The token does not have valid issuer.']
+    ]
+  rescue JWT::InvalidIatError
+    [
+      403, {'Content-Type' => 'text/plain'},
+      ['The token does not have a valid "issued at" time.']
+    ]
+  end
+end
+
+
 class Api < Sinatra::Base
+  use JwtAuth
+
   def initialize
     super
 
-    @account = {
+    @accounts = {
       user1: 100,
       user2: 200,
       user3: 300
@@ -14,8 +48,15 @@ class Api < Sinatra::Base
   end
 
   get '/money' do
-    content_type :json
-    {message: 'Hello World'}.to_json
+    scopes, user = request.env.values_at :scopes, :user
+    username = user['username'].to_sym
+
+    if scopes.include?('view_money') && @accounts.has_key?(username)
+      content_type :json
+      {money: @accounts[username]}.to_json
+    else
+      halt 403
+    end
   end
 end
 
@@ -57,36 +98,5 @@ class Public < Sinatra::Base
         username: username
       }
     }
-  end
-end
-
-class JwtAuth
-  def initialize(app)
-    @app = app
-  end
-
-  def call(env)
-    options = {algorithm: 'HS256', iss: ENV['JWT_ISSUER']}
-    bearer = env.fetch('HTTP_AUTHORIZATION', '').slice(7..-1)
-    payload, _ = JWT.decode(bearer, ENV['JWT_SECRET'], true, options)
-
-    env[:scopes] = payload['scopes']
-    env[:user] = payload['user']
-
-    @app.call env
-  rescue JWT::DecodeError
-    [401, {'Content-Type' => 'text/plain'}, ['A Token must be passed.']]
-  rescue JWT::ExpiredSignature
-    [403, {'Content-Type' => 'text/plain'}, ['The token has expired.']]
-  rescue JWT::InvalidIssuerError
-    [
-      403, {'Content-Type' => 'text/plain'},
-      ['The token does not have valid issuer.']
-    ]
-  rescue JWT::InvalidIatError
-    [
-      403, {'Content-Type' => 'text/plain'},
-      ['The token does not have a valid "issued at" time.']
-    ]
   end
 end
