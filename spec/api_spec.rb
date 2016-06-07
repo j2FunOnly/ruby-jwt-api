@@ -17,13 +17,13 @@ RSpec.describe RubyJWTAPI::Api do
   end
 
   describe 'with invalid token', :include_helpers do
-    it 'when no valid token present' do
+    it 'return 401 when token invalid' do
       get '/money', {}, {'HTTP_AUTHORIZATION' => 'invalid_token'}
       expect(last_response.status).to eq 401
       expect(last_response.body).to eq 'A Token must be passed.'
     end
 
-    it 'when expired' do
+    it 'return 403 when token has expired' do
       token = get_token :user1 do |payload|
         payload[:exp] = Time.now.to_i - 60 * 60
       end
@@ -33,7 +33,7 @@ RSpec.describe RubyJWTAPI::Api do
       expect(last_response.body).to eq 'The token has expired.'
     end
 
-    it 'when wrong iat' do
+    it 'return 403 when token has wrong iat value' do
       token = get_token :user1 do |payload|
         payload[:iat] = Time.now.to_i + 60 * 60 * 10
       end
@@ -43,7 +43,7 @@ RSpec.describe RubyJWTAPI::Api do
       expect(last_response.body).to eq 'The token does not have a valid "issued at" time.'
     end
 
-    it 'when wrong issuer' do
+    it 'return 403 when token has wrong issuer' do
       token = get_token :user1 do |payload|
         payload[:iss] = 'invalid_issuer.com'
       end
