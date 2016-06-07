@@ -12,8 +12,11 @@ require 'rack/test'
 require 'ruby_jwt_api'
 require 'pry'
 
+require 'support/helpers'
+
 RSpec.configure do |config|
   config.include Rack::Test::Methods
+  config.include Helpers, :include_helpers
 
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true

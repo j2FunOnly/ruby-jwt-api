@@ -11,7 +11,7 @@ module RubyJWTAPI
         verify_iss: true,
         verify_iat: true
       }
-      bearer = env.fetch('HTTP_AUTHORIZATION', '').slice(7..-1)
+      bearer = env.fetch('HTTP_AUTHORIZATION', '').slice(6..-1)
       payload, _header = JWT.decode(bearer, ENV['JWT_SECRET'], true, options)
 
       env[:scopes] = payload['scopes']
