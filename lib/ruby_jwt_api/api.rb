@@ -13,43 +13,39 @@ module RubyJWTAPI
     end
 
     get '/money' do
-      scopes, user = request.env.values_at :scopes, :user
-      username = user['username'].to_sym
-
-      if scopes.include?('view_money') && @accounts.has_key?(username)
-        content_type :json
-        {money: @accounts[username]}.to_json
-      else
-        halt 403
-      end
+      process_request request, 'view_money'
     end
 
     post '/money' do
-      scopes, user = request.env.values_at :scopes, :user
-      username = user['username'].to_sym
-
-      if scopes.include?('add_money') && @accounts.has_key?(username)
+      process_request request, 'add_money' do |username|
         amount = params[:amount].to_i
         @accounts[username] += amount
-        content_type :json
-        {money: @accounts[username]}.to_json
-      else
-        halt 403
       end
     end
 
     delete '/money' do
-      scopes, user = request.env.values_at :scopes, :user
-      username = user['username'].to_sym
-
-      if scopes.include?('remove_money') && @accounts.has_key?(username)
+      process_request request, 'remove_money' do |username|
         amount = params[:amount].to_i
         @accounts[username] -= amount
-        content_type :json
-        {money: @accounts[username]}.to_json
-      else
-        halt 403
       end
+    end
+
+    private
+
+    def process_request req, scope
+      scopes, user = req.env.values_at :scopes, :user
+      username = user['username'].to_sym
+
+      halt(403) unless scopes.include?(scope) && @accounts.has_key?(username)
+
+      yield username if block_given?
+
+      show_amount username
+    end
+
+    def show_amount(username)
+      content_type :json
+      {money: @accounts[username]}.to_json
     end
   end
 end
