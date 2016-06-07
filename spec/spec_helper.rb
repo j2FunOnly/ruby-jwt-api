@@ -9,10 +9,10 @@ ENV['JWT_SECRET'] = 'testsecret'
 ENV['JWT_ISSUER'] = 'testapi.com'
 
 require 'rack/test'
-require 'ruby_jwt_api'
 require 'pry'
+require 'ruby_jwt_api'
 
-require 'support/helpers'
+Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
 
 RSpec.configure do |config|
   config.include Rack::Test::Methods
