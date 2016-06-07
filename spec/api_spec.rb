@@ -1,4 +1,4 @@
-RSpec.describe RubyJWTAPI::Api do
+RSpec.describe RubyJWTAPI::Api, :include_helpers do
   let(:app) { described_class }
 
   describe 'with valid token' do
@@ -11,20 +11,33 @@ RSpec.describe RubyJWTAPI::Api do
 
     it 'return money amount for autheticated user' do
       get '/money', {}, {'HTTP_AUTHORIZATION' => @token}
+      
       expect(last_response.status).to eq 200
       expect(last_response.body).to match 'money'
     end
 
     it 'add money to accout' do
       get '/money', {}, {'HTTP_AUTHORIZATION' => @token}
-      current_amount = JSON.parse(last_response.body)['money'].to_i
+      current_amount = get_amount last_response
+
       post '/money', {amount: 100}, {'HTTP_AUTHORIZATION' => @token}
-      new_amount = JSON.parse(last_response.body)['money'].to_i
+      new_amount = get_amount last_response
+
       expect(new_amount - current_amount).to eq 100
+    end
+
+    it 'delete money from account' do
+      get '/money', {}, {'HTTP_AUTHORIZATION' => @token}
+      current_amount = get_amount last_response
+
+      delete '/money', {amount: 100}, {'HTTP_AUTHORIZATION' => @token}
+      new_amount = get_amount last_response
+
+      expect(new_amount - current_amount).to eq(-100)
     end
   end
 
-  describe 'with invalid token', :include_helpers do
+  describe 'with invalid token' do
     it 'return 401 when token invalid' do
       get '/money', {}, {'HTTP_AUTHORIZATION' => 'invalid_token'}
       expect(last_response.status).to eq 401

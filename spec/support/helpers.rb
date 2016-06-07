@@ -16,4 +16,8 @@ module Helpers
       }
     }
   end
+
+  def get_amount(response)
+    JSON.parse(response.body)['money'].to_i
+  end
 end
