@@ -23,5 +23,19 @@ module RubyJWTAPI
         halt 403
       end
     end
+
+    post '/money' do
+      scopes, user = request.env.values_at :scopes, :user
+      username = user['username'].to_sym
+
+      if scopes.include?('add_money') && @accounts.has_key?(username)
+        amount = params[:amount].to_i
+        @accounts[username] += amount
+        content_type :json
+        {money: @accounts[username]}.to_json
+      else
+        halt 403
+      end
+    end
   end
 end
