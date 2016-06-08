@@ -30,9 +30,10 @@ module RubyJWTAPI
     end
 
     def payload(username)
+      current_time = Time.now.to_i
       {
-        exp: Time.now.to_i + 60 * 60,
-        iat: Time.now.to_i,
+        exp: current_time + 60 * 60,
+        iat: current_time,
         iss: ENV['JWT_ISSUER'],
         scopes: ['add_money', 'remove_money', 'view_money'],
         user: {
