@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'sinatra', '~> 2.0.0'
-gem 'jwt', '~> 1.5.0'
+gem 'jwt', '~> 2.1.0'
 gem 'json', '~> 1.8.0'
 
 group :test, :development do
